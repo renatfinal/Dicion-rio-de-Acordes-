@@ -83,9 +83,10 @@ export function obterNotasDaEscala(notaBase: string, accidental: Notacao, interv
 export const TIPOS_ACORDES = [
   { sufixo: "",   nome: "Maior",    intervalos: [0,4,7] },
   { sufixo: "m",  nome: "Menor",    intervalos: [0,3,7] },
+  { sufixo: "5+", nome: "5ª Aumentada", intervalos: [0,4,8] },
+  { sufixo: "+",  nome: "Aumentado", intervalos: [0,4,8] },
   { sufixo: "º",  nome: "Diminuto", intervalos: [0,3,6] },
   { sufixo: "º7", nome: "Diminuto c/ 7ª", intervalos: [0,3,6,9] },
-  { sufixo: "+",  nome: "Aumentado", intervalos: [0,4,8] },
   { sufixo: "sus2", nome: "Suspenso 2", intervalos: [0,2,7] },
   { sufixo: "sus4", nome: "Suspenso 4", intervalos: [0,5,7] },
   { sufixo: "7",  nome: "Sétima Dominante", intervalos: [0,4,7,10] },
@@ -102,6 +103,8 @@ export function getViolaoShape(tomIndice: number, sufixo: string): GuitarShape {
     // C
     "0-": { status: ['x', 'o', 2, 2, 1, 'o'], marcas: [[1,3], [2,2], [4,1]], cordaRaiz: 1, casaInicial: 1 },
     "0-M": { status: ['x', 'o', 2, 2, 1, 'o'], marcas: [[1,3], [2,2], [4,1]], cordaRaiz: 1, casaInicial: 1 },
+    "0-5+": { status: ['x', 3, 2, 1, 1, 'o'], marcas: [[1,3], [2,2], [3,1], [4,1]], cordaRaiz: 1, casaInicial: 1 },
+    "0-+": { status: ['x', 3, 2, 1, 1, 'o'], marcas: [[1,3], [2,2], [3,1], [4,1]], cordaRaiz: 1, casaInicial: 1 },
     "0-7M": { status: ['x', 'o', 2, 'o', 'o', 'o'], marcas: [[1,3], [2,2]], cordaRaiz: 1, casaInicial: 1 },
     "0-7": { status: ['x', 'o', 2, 3, 1, 'o'], marcas: [[1,3], [2,2], [3,3], [4,1]], cordaRaiz: 1, casaInicial: 1 },
     
@@ -162,6 +165,7 @@ export function getViolaoShape(tomIndice: number, sufixo: string): GuitarShape {
     "º":    { status: ['o', 'x', 'o', 'o', 'x', 'x'], marcas: [[0,2], [2,1], [3,2]] },
     "º7":   { status: ['o', 'x', 'o', 'o', 'o', 'x'], marcas: [[0,2], [2,1], [3,2], [4,1]] },
     "+":    { status: ['o', 'x', 'o', 'o', 'o', 'x'], marcas: [[0,1], [2,2], [3,1], [4,1]] },
+    "5+":   { status: ['o', 'x', 'o', 'o', 'o', 'x'], marcas: [[0,1], [2,2], [3,1], [4,1]] },
   };
 
   const shapeA: Record<string, { status: string[], marcas: number[][] }> = {
@@ -176,6 +180,7 @@ export function getViolaoShape(tomIndice: number, sufixo: string): GuitarShape {
     "º":    { status: ['x', 'o', 'o', 'o', 'o', 'x'], marcas: [[1,1], [2,2], [3,1], [4,2]] },
     "º7":   { status: ['x', 'o', 'o', 'o', 'o', 'x'], marcas: [[1,1], [2,2], [3,1], [4,2]] }, 
     "+":    { status: ['x', 'o', 'o', 'o', 'o', 'x'], marcas: [[1,1], [2,3], [3,3], [4,2]] },
+    "5+":   { status: ['x', 'o', 'o', 'o', 'o', 'x'], marcas: [[1,1], [2,3], [3,3], [4,2]] },
   };
 
   const selectedShape = useEShape ? (shapeE[sufixo] || shapeE[""]) : (shapeA[sufixo] || shapeA[""]);
