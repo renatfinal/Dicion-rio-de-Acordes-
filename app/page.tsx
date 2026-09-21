@@ -49,8 +49,17 @@ export default function ChordProApp() {
       const cifraCompleta = currentNote.nome + tipo.sufixo + baixoExibicao;
       const term = searchQuery.trim().toLowerCase();
       
-      if (term && !cifraCompleta.toLowerCase().includes(term) && !tipo.nome.toLowerCase().includes(term)) {
-        return false;
+      if (term) {
+        const matchCifra = cifraCompleta.toLowerCase().includes(term);
+        const matchNome = tipo.nome.toLowerCase().includes(term);
+        const matchSufixo = tipo.sufixo.toLowerCase().includes(term);
+        const matchSinonimo = tipo.sinonimos?.some(s => 
+          s.toLowerCase().includes(term) || 
+          (currentNote.nome + s).toLowerCase().includes(term)
+        );
+        if (!matchCifra && !matchNome && !matchSufixo && !matchSinonimo) {
+          return false;
+        }
       }
       return true;
     }).map(tipo => {

@@ -80,28 +80,28 @@ export function obterNotasDaEscala(notaBase: string, accidental: Notacao, interv
   });
 }
 
-export const TIPOS_ACORDES = [
-  { sufixo: "",       nome: "Maior",                          intervalos: [0, 4, 7] },
-  { sufixo: "m",      nome: "Menor",                          intervalos: [0, 3, 7] },
-  { sufixo: "7+",     nome: "Sétima Maior (7+)",              intervalos: [0, 4, 7, 11] },
-  { sufixo: "7M",     nome: "Sétima Maior (7M)",              intervalos: [0, 4, 7, 11] },
-  { sufixo: "7",      nome: "Sétima Dominante",               intervalos: [0, 4, 7, 10] },
-  { sufixo: "m7",     nome: "Menor com 7ª",                   intervalos: [0, 3, 7, 10] },
-  { sufixo: "m7(b5)", nome: "Meio-Diminuto / Menor 7(b5)",    intervalos: [0, 3, 6, 10] },
-  { sufixo: "m(b5)",  nome: "Menor com 5ª Diminuta",          intervalos: [0, 3, 6] },
-  { sufixo: "º",      nome: "Diminuto (º)",                   intervalos: [0, 3, 6] },
-  { sufixo: "°",      nome: "Diminuto (°)",                   intervalos: [0, 3, 6] },
-  { sufixo: "º7",     nome: "Diminuto c/ 7ª",                 intervalos: [0, 3, 6, 9] },
-  { sufixo: "m7+",    nome: "Menor com 7ª Maior (m7+)",       intervalos: [0, 3, 7, 11] },
-  { sufixo: "m(7+)",  nome: "Menor com 7ª Maior (m(7+))",     intervalos: [0, 3, 7, 11] },
-  { sufixo: "7(b9)",  nome: "Sétima Dominante com 9ª Menor",  intervalos: [0, 4, 7, 10, 13] },
-  { sufixo: "7+(#5)", nome: "Sétima Maior c/ 5ª Aumentada",  intervalos: [0, 4, 8, 11] },
-  { sufixo: "7+(5#)", nome: "Sétima Maior c/ 5ª Aumentada",  intervalos: [0, 4, 8, 11] },
-  { sufixo: "+",      nome: "Aumentado (+)",                  intervalos: [0, 4, 8] },
-  { sufixo: "5+",     nome: "5ª Aumentada (5+)",              intervalos: [0, 4, 8] },
-  { sufixo: "(#5)",   nome: "5ª Aumentada (#5)",              intervalos: [0, 4, 8] },
-  { sufixo: "sus2",   nome: "Suspenso 2",                     intervalos: [0, 2, 7] },
-  { sufixo: "sus4",   nome: "Suspenso 4",                     intervalos: [0, 5, 7] }
+export interface TipoAcorde {
+  sufixo: string;
+  nome: string;
+  intervalos: number[];
+  sinonimos?: string[];
+}
+
+export const TIPOS_ACORDES: TipoAcorde[] = [
+  { sufixo: "",       nome: "Maior",                                intervalos: [0, 4, 7],         sinonimos: ["M", "maior"] },
+  { sufixo: "m",      nome: "Menor",                                intervalos: [0, 3, 7],         sinonimos: ["min", "menor"] },
+  { sufixo: "7+",     nome: "Sétima Maior (7+ / 7M)",               intervalos: [0, 4, 7, 11],     sinonimos: ["7M", "maj7", "7+"] },
+  { sufixo: "7",      nome: "Sétima Dominante",                     intervalos: [0, 4, 7, 10],     sinonimos: ["dom", "7"] },
+  { sufixo: "m7",     nome: "Menor com 7ª",                         intervalos: [0, 3, 7, 10],     sinonimos: ["min7", "m7"] },
+  { sufixo: "m7(b5)", nome: "Meio-Diminuto / Menor 7(b5)",          intervalos: [0, 3, 6, 10],     sinonimos: ["m7b5", "ø", "-7b5", "meio"] },
+  { sufixo: "º",      nome: "Diminuto / Menor (b5)",                intervalos: [0, 3, 6],         sinonimos: ["°", "dim", "m(b5)", "mb5"] },
+  { sufixo: "º7",     nome: "Diminuto com 7ª",                      intervalos: [0, 3, 6, 9],      sinonimos: ["°7", "dim7"] },
+  { sufixo: "m7+",    nome: "Menor com 7ª Maior (m7+ / m(7+))",     intervalos: [0, 3, 7, 11],     sinonimos: ["m(7+)", "m7M", "min(maj7)"] },
+  { sufixo: "7(b9)",  nome: "Sétima Dominante com 9ª Menor",        intervalos: [0, 4, 7, 10, 13], sinonimos: ["7b9", "b9"] },
+  { sufixo: "7+(#5)", nome: "Sétima Maior c/ 5ª Aum. (7+#5)",       intervalos: [0, 4, 8, 11],     sinonimos: ["7+(5#)", "7M(#5)", "7M(5#)", "maj7(#5)"] },
+  { sufixo: "+",      nome: "Aumentado / 5ª Aumentada (+ / 5#)",    intervalos: [0, 4, 8],         sinonimos: ["5+", "(#5)", "#5", "aug", "aumentado"] },
+  { sufixo: "sus2",   nome: "Suspenso 2",                           intervalos: [0, 2, 7],         sinonimos: ["sus2"] },
+  { sufixo: "sus4",   nome: "Suspenso 4",                           intervalos: [0, 5, 7],         sinonimos: ["sus4", "sus"] }
 ];
 
 export type GuitarShape = { status: (string | number)[], marcas: number[][], cordaRaiz: number, casaInicial: number };
