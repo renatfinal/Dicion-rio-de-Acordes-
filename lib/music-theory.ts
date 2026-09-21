@@ -204,6 +204,8 @@ export interface Escala {
   intervalos: number[];
   graus: string[];
   sufixos: string[];
+  sufixosTriades: string[];
+  sufixosTetrades: string[];
   estruturaIntervalos: string;
   passos: string[];
 }
@@ -213,7 +215,9 @@ export const ESCALAS: Escala[] = [
     nome: "Maior Natural",
     intervalos: [0, 2, 4, 5, 7, 9, 11],
     graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
-    sufixos: ["", "m", "m", "", "", "m", "º"],
+    sufixos: ["", "m", "m", "", "", "m", "°"],
+    sufixosTriades: ["", "m", "m", "", "", "m", "°"],
+    sufixosTetrades: ["7+", "m7", "m7", "7+", "7", "m7", "m7(b5)"],
     estruturaIntervalos: "T - T - ST - T - T - T - ST",
     passos: ["T", "T", "ST", "T", "T", "T", "ST"]
   },
@@ -221,7 +225,9 @@ export const ESCALAS: Escala[] = [
     nome: "Menor Natural",
     intervalos: [0, 2, 3, 5, 7, 8, 10],
     graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
-    sufixos: ["m", "º", "", "m", "m", "", ""],
+    sufixos: ["m", "°", "", "m", "m", "", ""],
+    sufixosTriades: ["m", "°", "", "m", "m", "", ""],
+    sufixosTetrades: ["m7", "m7(b5)", "7+", "m7", "m7", "7+", "7"],
     estruturaIntervalos: "T - ST - T - T - ST - T - T",
     passos: ["T", "ST", "T", "T", "ST", "T", "T"]
   },
@@ -229,7 +235,9 @@ export const ESCALAS: Escala[] = [
     nome: "Maior Harmônica",
     intervalos: [0, 2, 4, 5, 7, 8, 11],
     graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
-    sufixos: ["", "º", "m", "m", "", "+", "º"],
+    sufixos: ["", "°", "m", "m", "", "", "°"],
+    sufixosTriades: ["", "°", "m", "m", "", "", "°"],
+    sufixosTetrades: ["7+", "m7(b5)", "m7", "m7+", "7(b9)", "7+(5#)", "°"],
     estruturaIntervalos: "T - T - ST - T - ST - 1T 1/2 - ST",
     passos: ["T", "T", "ST", "T", "ST", "1T 1/2", "ST"]
   },
@@ -237,7 +245,9 @@ export const ESCALAS: Escala[] = [
     nome: "Menor Harmônica",
     intervalos: [0, 2, 3, 5, 7, 8, 11],
     graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
-    sufixos: ["m", "º", "+", "m", "", "", "º"],
+    sufixos: ["m", "°", "+", "m", "", "", "°"],
+    sufixosTriades: ["m", "°", "+", "m", "", "", "°"],
+    sufixosTetrades: ["m(7+)", "m7(b5)", "7+(#5)", "m7", "7", "7+", "°"],
     estruturaIntervalos: "T - ST - T - T - ST - 1 T e 1/2 - ST",
     passos: ["T", "ST", "T", "T", "ST", "1 T e 1/2", "ST"]
   },
@@ -245,7 +255,9 @@ export const ESCALAS: Escala[] = [
     nome: "Menor Melódica",
     intervalos: [0, 2, 3, 5, 7, 9, 11],
     graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
-    sufixos: ["m", "m", "+", "", "", "º", "º"],
+    sufixos: ["m", "m", "(#5)", "", "", "m(b5)", "m(b5)"],
+    sufixosTriades: ["m", "m", "(#5)", "", "", "m(b5)", "m(b5)"],
+    sufixosTetrades: ["m7+", "m7", "7+(#5)", "7", "7", "m7(b5)", "m7(b5)"],
     estruturaIntervalos: "T - ST - T - T - T - T - ST",
     passos: ["T", "ST", "T", "T", "T", "T", "ST"]
   }

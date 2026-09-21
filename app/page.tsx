@@ -34,6 +34,7 @@ export default function ChordProApp() {
   const [harmRootNote, setHarmRootNote] = useState('C');
   const [harmAccidental, setHarmAccidental] = useState<Notacao>('natural');
   const [harmView, setHarmView] = useState<'none' | 'escalas' | 'campos' | 'modos'>('none');
+  const [formatoCampo, setFormatoCampo] = useState<'triades' | 'tetrades'>('triades');
 
   const currentNote = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
   
@@ -276,18 +277,52 @@ export default function ChordProApp() {
                 </div>
              ) : (
                <div className="space-y-6">
-                 <button 
-                   onClick={() => setHarmView('none')}
-                   className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl"
-                 >
-                   ← Voltar
-                 </button>
+                 <div className="flex items-center justify-between flex-wrap gap-3">
+                   <button 
+                     id="btn-voltar-harmonia"
+                     onClick={() => setHarmView('none')}
+                     className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-xl cursor-pointer"
+                   >
+                     ← Voltar
+                   </button>
+
+                   {harmView === 'campos' && (
+                     <div className="flex items-center bg-neutral-950 border border-neutral-800 p-1.5 rounded-2xl shadow-inner">
+                       <button
+                         id="btn-campo-triades"
+                         onClick={() => setFormatoCampo('triades')}
+                         className={`px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer ${
+                           formatoCampo === 'triades'
+                             ? 'bg-neutral-800 text-white shadow-sm'
+                             : 'text-neutral-400 hover:text-neutral-200'
+                         }`}
+                       >
+                         Tríades
+                       </button>
+                       <button
+                         id="btn-campo-tetrades"
+                         onClick={() => setFormatoCampo('tetrades')}
+                         className={`px-4 py-1.5 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                           formatoCampo === 'tetrades'
+                             ? 'bg-amber-500 text-neutral-950 shadow-md font-bold'
+                             : 'text-neutral-300 hover:text-amber-400'
+                         }`}
+                       >
+                         <span>Tétrades</span>
+                         {formatoCampo === 'tetrades' && (
+                           <span className="w-1.5 h-1.5 rounded-full bg-neutral-950" />
+                         )}
+                       </button>
+                     </div>
+                   )}
+                 </div>
                  
                  <div className="space-y-4">
                    <HarmoniaResults 
                      view={harmView} 
                      rootNote={harmRootNote} 
                      accidental={harmAccidental} 
+                     formatoCampo={formatoCampo}
                    />
                  </div>
                </div>
@@ -304,7 +339,17 @@ export default function ChordProApp() {
 // Sub-Components
 // -----------------------------------------------------------------------------
 
-function HarmoniaResults({ view, rootNote, accidental }: { view: 'escalas' | 'campos' | 'modos', rootNote: string, accidental: Notacao }) {
+function HarmoniaResults({ 
+  view, 
+  rootNote, 
+  accidental,
+  formatoCampo = 'triades'
+}: { 
+  view: 'escalas' | 'campos' | 'modos'; 
+  rootNote: string; 
+  accidental: Notacao;
+  formatoCampo?: 'triades' | 'tetrades';
+}) {
   const [modalEscala, setModalEscala] = useState<Escala | null>(null);
   const tom = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
 
@@ -336,28 +381,47 @@ function HarmoniaResults({ view, rootNote, accidental }: { view: 'escalas' | 'ca
     <>
       {ESCALAS.map((escala, i) => {
         const notasDaEscala = obterNotasDaEscala(rootNote, accidental, escala.intervalos);
+        const sufixosUsados = view === 'campos'
+          ? (formatoCampo === 'tetrades' ? escala.sufixosTetrades : escala.sufixosTriades)
+          : null;
 
         return (
           <div key={i} className="bg-neutral-900 border border-neutral-800 border-l-4 border-l-cyan-500 rounded-2xl p-5 shadow-lg">
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-              <h4 className="text-lg font-bold text-amber-400">
-                {tom.nome} {escala.nome}
-              </h4>
-              <button
-                id={`btn-intervalos-${i}`}
-                onClick={() => setModalEscala(escala)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-neutral-950 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 cursor-pointer"
-                title={`Ver intervalos de ${tom.nome} ${escala.nome}`}
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                ( Intervalos )
-              </button>
+              <div className="flex items-center gap-2.5">
+                <h4 className="text-lg font-bold text-amber-400">
+                  {tom.nome} {escala.nome}
+                </h4>
+                {view === 'campos' && (
+                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                    formatoCampo === 'tetrades' 
+                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' 
+                      : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                  }`}>
+                    {formatoCampo === 'tetrades' ? 'Tétrades' : 'Tríades'}
+                  </span>
+                )}
+              </div>
+
+              {view === 'escalas' && (
+                <button
+                  id={`btn-intervalos-${i}`}
+                  onClick={() => setModalEscala(escala)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-neutral-950 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 cursor-pointer"
+                  title={`Ver intervalos de ${tom.nome} ${escala.nome}`}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  ( Intervalos )
+                </button>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2.5">
               {escala.intervalos.map((_, idx) => {
                 let label = notasDaEscala[idx];
-                if (view === 'campos') label += escala.sufixos[idx];
+                if (view === 'campos' && sufixosUsados) {
+                  label += sufixosUsados[idx];
+                }
                 const grau = escala.graus[idx];
 
                 return (
