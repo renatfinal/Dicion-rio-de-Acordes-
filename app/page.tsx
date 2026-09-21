@@ -15,6 +15,7 @@ import {
   Notacao
 } from '@/lib/music-theory';
 import { tocarSomAcorde, initAudio } from '@/lib/audio';
+import { PWAInstallButton } from '@/components/PWAStatus';
 
 type Tab = 'acordes' | 'harmonia';
 type Instrument = 'piano' | 'violao';
@@ -91,6 +92,20 @@ export default function ChordProApp() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 font-sans p-4 md:p-8 selection:bg-cyan-500/30">
       <div className="max-w-4xl mx-auto space-y-6">
         
+        {/* Top App Branding & Install Prompt */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold tracking-tight text-white flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]"></span>
+              Chord &amp; Harmony Pro
+            </span>
+            <span className="hidden sm:inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-neutral-900 text-cyan-400/90 border border-cyan-800/40">
+              Offline 100%
+            </span>
+          </div>
+          <PWAInstallButton />
+        </div>
+
         {/* Header Navigation */}
         <header className="flex bg-neutral-900 border border-neutral-800 rounded-2xl p-1.5 shadow-xl shadow-black/50">
           <button 
