@@ -36,13 +36,48 @@ export function obterNotaInterna(notaBase: string, alteracao: Notacao): Nota {
 }
 
 export function obterNomePorIndice(indice: number, notacao: Notacao): string {
-  const nomeSustenido = INDICE_NOME_SUSTENIDO[indice];
+  const normIndice = ((indice % 12) + 12) % 12;
+  const nomeSustenido = INDICE_NOME_SUSTENIDO[normIndice];
   if (notacao === "sustenido") return nomeSustenido;
   if (notacao === "bemol") {
     const mapa: Record<string, string> = { "C#": "Db", "D#": "Eb", "F#": "Gb", "G#": "Ab", "A#": "Bb" };
     return mapa[nomeSustenido] || nomeSustenido;
   }
-  return nomeSustenido.replace('#', '');
+  // Notação natural: para notas sem alteração retorna a nota direta; para acidentes cromáticos usa sustenido padrão
+  return nomeSustenido;
+}
+
+const LETRAS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const NATURAL_PITCH: Record<string, number> = {
+  'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11
+};
+
+export function obterNotasDaEscala(notaBase: string, accidental: Notacao, intervalos: number[]): string[] {
+  const tom = obterNotaInterna(notaBase, accidental);
+  const baseLetter = notaBase.charAt(0);
+  const baseIndex = LETRAS.indexOf(baseLetter);
+  
+  if (baseIndex === -1) {
+    return intervalos.map(i => obterNomePorIndice((tom.indice + i) % 12, accidental));
+  }
+
+  return intervalos.map((intervalo, grauIdx) => {
+    const targetLetter = LETRAS[(baseIndex + grauIdx) % 7];
+    const naturalPitch = NATURAL_PITCH[targetLetter];
+    const targetPitch = (tom.indice + intervalo) % 12;
+    
+    let diff = (targetPitch - naturalPitch) % 12;
+    if (diff < -6) diff += 12;
+    if (diff > 6) diff -= 12;
+    
+    let accStr = "";
+    if (diff === 1) accStr = "#";
+    else if (diff === 2) accStr = "##";
+    else if (diff === -1) accStr = "b";
+    else if (diff === -2) accStr = "bb";
+    
+    return targetLetter + accStr;
+  });
 }
 
 export const TIPOS_ACORDES = [
@@ -159,12 +194,56 @@ export function getViolaoShape(tomIndice: number, sufixo: string): GuitarShape {
   };
 }
 
-export const ESCALAS = [
-  { nome: "Maior", intervalos: [0,2,4,5,7,9,11], graus: ["I","II","III","IV","V","VI","VII"], sufixos: ["","m","m","","","m","º"] },
-  { nome: "Menor Natural", intervalos: [0,2,3,5,7,8,10], graus: ["I","II","III","IV","V","VI","VII"], sufixos: ["m","º","","m","m","",""] },
-  { nome: "Menor Harmônica", intervalos: [0,2,3,5,7,8,11], graus: ["I","II","III","IV","V","VI","VII"], sufixos: ["m","º","+","m","","","º"] },
-  { nome: "Maior Harmônica", intervalos: [0,2,4,5,7,8,11], graus: ["I","II","III","IV","V","VI","VII"], sufixos: ["","º","m","m","","+","º"] },
-  { nome: "Menor Melódica", intervalos: [0,2,3,5,7,9,11], graus: ["I","II","III","IV","V","VI","VII"], sufixos: ["m","m","+","","","º","º"] }
+export interface Escala {
+  nome: string;
+  intervalos: number[];
+  graus: string[];
+  sufixos: string[];
+  estruturaIntervalos: string;
+  passos: string[];
+}
+
+export const ESCALAS: Escala[] = [
+  {
+    nome: "Maior Natural",
+    intervalos: [0, 2, 4, 5, 7, 9, 11],
+    graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
+    sufixos: ["", "m", "m", "", "", "m", "º"],
+    estruturaIntervalos: "T - T - ST - T - T - T - ST",
+    passos: ["T", "T", "ST", "T", "T", "T", "ST"]
+  },
+  {
+    nome: "Menor Natural",
+    intervalos: [0, 2, 3, 5, 7, 8, 10],
+    graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
+    sufixos: ["m", "º", "", "m", "m", "", ""],
+    estruturaIntervalos: "T - ST - T - T - ST - T - T",
+    passos: ["T", "ST", "T", "T", "ST", "T", "T"]
+  },
+  {
+    nome: "Maior Harmônica",
+    intervalos: [0, 2, 4, 5, 7, 8, 11],
+    graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
+    sufixos: ["", "º", "m", "m", "", "+", "º"],
+    estruturaIntervalos: "T - T - ST - T - ST - 1T 1/2 - ST",
+    passos: ["T", "T", "ST", "T", "ST", "1T 1/2", "ST"]
+  },
+  {
+    nome: "Menor Harmônica",
+    intervalos: [0, 2, 3, 5, 7, 8, 11],
+    graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
+    sufixos: ["m", "º", "+", "m", "", "", "º"],
+    estruturaIntervalos: "T - ST - T - T - ST - 1 T e 1/2 - ST",
+    passos: ["T", "ST", "T", "T", "ST", "1 T e 1/2", "ST"]
+  },
+  {
+    nome: "Menor Melódica",
+    intervalos: [0, 2, 3, 5, 7, 9, 11],
+    graus: ["I", "II", "III", "IV", "V", "VI", "VII"],
+    sufixos: ["m", "m", "+", "", "", "º", "º"],
+    estruturaIntervalos: "T - ST - T - T - T - T - ST",
+    passos: ["T", "ST", "T", "T", "T", "T", "ST"]
+  }
 ];
 
 export const MODOS_GREGOS = [
