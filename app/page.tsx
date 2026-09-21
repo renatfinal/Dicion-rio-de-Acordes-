@@ -153,7 +153,7 @@ export default function ChordProApp() {
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Ex: m, sus, 7, º..."
+                    placeholder="Ex: 7+, m7(b5), m7+, 7(b9), º..."
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all placeholder:text-neutral-600"
                   />
                 </div>
