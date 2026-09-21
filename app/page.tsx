@@ -482,107 +482,110 @@ function IntervalosModal({
   return (
     <div
       id="modal-intervalos-backdrop"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         id="modal-intervalos-content"
-        className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-2xl space-y-6 relative animate-in zoom-in-95 duration-200"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[88vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+        {/* Header Fixo */}
+        <div className="flex items-center justify-between border-b border-neutral-800 px-4 sm:px-5 py-3 shrink-0 bg-neutral-900">
           <div>
-            <span className="text-xs uppercase tracking-wider font-bold text-cyan-400">Escala Musical</span>
-            <h3 className="text-2xl font-bold text-white mt-0.5">{tom.nome} {escala.nome}</h3>
+            <span className="text-[10px] uppercase tracking-wider font-bold text-cyan-400">Escala Musical</span>
+            <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">{tom.nome} {escala.nome}</h3>
           </div>
           <button
             id="btn-fechar-modal"
             onClick={onClose}
-            className="w-10 h-10 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"
             aria-label="Fechar janela"
             title="Fechar"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Sequência de Notas como solicitado */}
-        <div className="space-y-2">
-          <label className="text-xs uppercase tracking-wider font-bold text-neutral-400">
-            {tom.nome} {escala.nome}
-          </label>
-          <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-center shadow-inner">
-            <span className="text-lg md:text-xl font-bold text-white tracking-wide">
-              {notas.join(' - ')} .
-            </span>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1.5 md:gap-2 pt-1">
-            {notas.map((nota, idx) => (
-              <div key={idx} className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-2.5 text-center">
-                <span className="block text-base md:text-lg font-bold text-amber-400">{nota}</span>
-                <span className="block text-[10px] uppercase font-bold text-neutral-500 mt-0.5">{escala.graus[idx]}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Estrutura de Intervalos como solicitado */}
-        <div className="space-y-2">
-          <label className="text-xs uppercase tracking-wider font-bold text-neutral-400">
-            Estrutura de Intervalos
-          </label>
-          <div className="bg-neutral-950 border border-cyan-500/40 rounded-2xl p-4 text-center shadow-inner">
-            <span className="text-lg md:text-xl font-mono font-bold text-cyan-400 tracking-wider">
-              {escala.estruturaIntervalos}
-            </span>
-          </div>
-        </div>
-
-        {/* Passo a Passo Visual Nota a Nota */}
-        <div className="space-y-2">
-          <label className="text-xs uppercase tracking-wider font-bold text-neutral-400">
-            Progressão Passo a Passo
-          </label>
-          <div className="bg-neutral-950 border border-neutral-800 rounded-2xl p-3 md:p-4 overflow-x-auto">
-            <div className="flex items-center justify-between min-w-[340px] gap-1 text-center">
-              {notas.map((nota, idx) => {
-                const passo = escala.passos[idx];
-                return (
-                  <div key={idx} className="flex items-center gap-1">
-                    <span className="px-2 py-1 bg-neutral-900 border border-neutral-800 rounded-lg text-xs font-bold text-white">
-                      {nota}
-                    </span>
-                    <span className="text-[11px] font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-1.5 py-0.5 rounded">
-                      {passo}
-                    </span>
-                  </div>
-                );
-              })}
-              <span className="px-2 py-1 bg-neutral-900 border border-neutral-800 rounded-lg text-xs font-bold text-neutral-400">
-                {notas[0]}
+        {/* Corpo com Scroll interno suave se a tela for pequena */}
+        <div className="overflow-y-auto px-4 sm:px-5 py-3.5 space-y-3 flex-1">
+          {/* Sequência de Notas como solicitado */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              {tom.nome} {escala.nome}
+            </label>
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl py-2 px-3 text-center shadow-inner">
+              <span className="text-base sm:text-lg font-bold text-white tracking-wide">
+                {notas.join(' - ')} .
               </span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5 pt-0.5">
+              {notas.map((nota, idx) => (
+                <div key={idx} className="bg-neutral-950 border border-neutral-800/80 rounded-lg py-1.5 px-1 text-center">
+                  <span className="block text-sm sm:text-base font-bold text-amber-400">{nota}</span>
+                  <span className="block text-[9px] uppercase font-bold text-neutral-500 mt-0.5">{escala.graus[idx]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Estrutura de Intervalos */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Estrutura de Intervalos
+            </label>
+            <div className="bg-neutral-950 border border-cyan-500/40 rounded-xl py-2 px-3 text-center shadow-inner">
+              <span className="text-sm sm:text-base font-mono font-bold text-cyan-400 tracking-wider">
+                {escala.estruturaIntervalos}
+              </span>
+            </div>
+          </div>
+
+          {/* Passo a Passo Visual Nota a Nota */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Progressão Passo a Passo
+            </label>
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 overflow-x-auto">
+              <div className="flex items-center justify-between min-w-[320px] gap-1 text-center">
+                {notas.map((nota, idx) => {
+                  const passo = escala.passos[idx];
+                  return (
+                    <div key={idx} className="flex items-center gap-1">
+                      <span className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-[11px] font-bold text-white">
+                        {nota}
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-1 py-0.5 rounded">
+                        {passo}
+                      </span>
+                    </div>
+                  );
+                })}
+                <span className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-[11px] font-bold text-neutral-400">
+                  {notas[0]}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Legenda dos Intervalos */}
+          <div className="bg-neutral-950/70 border border-neutral-800 rounded-xl p-2.5 text-[11px] text-neutral-400 space-y-1">
+            <div className="font-semibold text-neutral-300">Legenda de Intervalos:</div>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+              <span><strong className="text-cyan-400">T</strong> = Tom (2 semitons)</span>
+              <span><strong className="text-cyan-400">ST</strong> = Semitom (1 semitom)</span>
+              <span><strong className="text-cyan-400">1 T e 1/2</strong> = 1 Tom e meio</span>
             </div>
           </div>
         </div>
 
-        {/* Legenda dos Intervalos */}
-        <div className="bg-neutral-950/70 border border-neutral-800 rounded-2xl p-4 text-xs text-neutral-400 space-y-1.5">
-          <div className="font-semibold text-neutral-300">Legenda de Intervalos:</div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span><strong className="text-cyan-400">T</strong> = Tom (2 semitons)</span>
-            <span><strong className="text-cyan-400">ST</strong> = Semitom (1 semitom)</span>
-            <span><strong className="text-cyan-400">1 T e 1/2</strong> = 1 Tom e meio (3 semitons)</span>
-          </div>
-        </div>
-
-        {/* Rodapé com botão Fechar */}
-        <div className="flex justify-end pt-2">
+        {/* Rodapé Fixo com botão Fechar sempre visível */}
+        <div className="border-t border-neutral-800 px-4 sm:px-5 py-2.5 flex justify-end shrink-0 bg-neutral-900">
           <button
             id="btn-fechar-modal-rodape"
             onClick={onClose}
-            className="px-5 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-semibold rounded-xl text-sm transition-all cursor-pointer"
+            className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
           >
             Fechar
           </button>
