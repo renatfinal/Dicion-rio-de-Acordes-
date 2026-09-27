@@ -14,7 +14,8 @@ import {
   ModoGrego,
   getViolaoShape,
   obterIntervalosInvertidos,
-  Notacao
+  Notacao,
+  NOME_NOTA_INDICE
 } from '@/lib/music-theory';
 import { tocarSomAcorde, initAudio } from '@/lib/audio';
 import { PWAInstallButton } from '@/components/PWAStatus';
@@ -365,6 +366,42 @@ export default function ChordProApp() {
 // Sub-Components
 // -----------------------------------------------------------------------------
 
+interface AcordeCampoInfo {
+  cifra: string;
+  grau: string;
+  escalaNome: string;
+  tomNome: string;
+  formato: 'triades' | 'tetrades';
+  notas: string[];
+  raizPitch: number;
+  intervalos: number[];
+  notasNomesMap: Record<number, string>;
+}
+
+function getFuncaoNotaNoAcorde(semitons: number, posicao: number): string {
+  if (posicao === 0) return 'Fundamental (1ª)';
+  if (posicao === 1) {
+    if (semitons === 3) return '3ª Menor (3m)';
+    if (semitons === 4) return '3ª Maior (3M)';
+    if (semitons === 5) return '4ª Justa (4J)';
+    if (semitons === 2) return '2ª Maior (2M)';
+    return `${semitons} semitons`;
+  }
+  if (posicao === 2) {
+    if (semitons === 6) return '5ª Diminuta (5b)';
+    if (semitons === 7) return '5ª Justa (5J)';
+    if (semitons === 8) return '5ª Aumentada (5#)';
+    return `${semitons} semitons`;
+  }
+  if (posicao === 3) {
+    if (semitons === 9) return '7ª Diminuta (7º)';
+    if (semitons === 10) return '7ª Menor (7)';
+    if (semitons === 11) return '7ª Maior (7M)';
+    return `${semitons} semitons`;
+  }
+  return `${semitons} semitons`;
+}
+
 function HarmoniaResults({ 
   view, 
   rootNote, 
@@ -378,6 +415,7 @@ function HarmoniaResults({
 }) {
   const [modalEscala, setModalEscala] = useState<Escala | null>(null);
   const [modalModo, setModalModo] = useState<ModoGrego | null>(null);
+  const [modalAcordeCampo, setModalAcordeCampo] = useState<AcordeCampoInfo | null>(null);
   const tom = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
   const tomNome = useMemo(() => formatarAcidenteVisual(tom.nome), [tom]);
 
@@ -448,7 +486,7 @@ function HarmoniaResults({
 
         return (
           <div key={i} className="bg-neutral-900 border border-neutral-800 border-l-4 border-l-cyan-500 rounded-2xl p-5 shadow-lg">
-            <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+            <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
               <div className="flex items-center gap-2.5">
                 <h4 className="text-lg font-bold text-amber-400">
                   {tomNome} {escala.nome}
@@ -477,22 +515,85 @@ function HarmoniaResults({
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2.5">
-              {escala.intervalos.map((_, idx) => {
-                let label = formatarAcidenteVisual(notasDaEscala[idx]);
-                if (view === 'campos' && sufixosUsados) {
-                  label += sufixosUsados[idx];
-                }
-                const grau = escala.graus[idx];
+            {view === 'campos' && (
+              <p className="text-[11px] text-neutral-400 mb-3 flex items-center gap-1.5">
+                <Piano className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span>Toque no acorde para ver as teclas no piano e ouvir o som</span>
+              </p>
+            )}
 
-                return (
-                  <div key={idx} className="flex-1 min-w-[60px] bg-neutral-950 border border-neutral-800 p-2.5 rounded-xl text-center">
-                    <span className="block text-lg font-bold text-white">{label}</span>
-                    <span className="block text-[10px] uppercase text-neutral-500 font-bold mt-0.5">{grau}</span>
-                  </div>
-                );
-              })}
-            </div>
+            {view === 'campos' ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-2.5">
+                {escala.intervalos.map((_, idx) => {
+                  let label = formatarAcidenteVisual(notasDaEscala[idx]);
+                  if (sufixosUsados) {
+                    label += sufixosUsados[idx];
+                  }
+                  const grau = escala.graus[idx];
+
+                  return (
+                    <button
+                      key={idx}
+                      id={`btn-acorde-campo-${i}-${idx}`}
+                      onClick={() => {
+                        const stepIndices = formatoCampo === 'tetrades' ? [0, 2, 4, 6] : [0, 2, 4];
+                        const notasAcorde = stepIndices.map(step => notasDaEscala[(idx + step) % 7]);
+                        const raiz = notasDaEscala[idx];
+                        const raizPitch = NOME_NOTA_INDICE[raiz] ?? 0;
+                        const notasPitch = notasAcorde.map(n => NOME_NOTA_INDICE[n] ?? 0);
+                        const intervalosAcorde = notasPitch.map(p => (p - raizPitch + 12) % 12);
+                        
+                        const notasNomesMap: Record<number, string> = {};
+                        notasAcorde.forEach(n => {
+                          const p = NOME_NOTA_INDICE[n] ?? 0;
+                          notasNomesMap[p] = formatarAcidenteVisual(n);
+                        });
+
+                        setModalAcordeCampo({
+                          cifra: label,
+                          grau,
+                          escalaNome: escala.nome,
+                          tomNome,
+                          formato: formatoCampo,
+                          notas: notasAcorde,
+                          raizPitch,
+                          intervalos: intervalosAcorde,
+                          notasNomesMap
+                        });
+                      }}
+                      className="w-full bg-neutral-950 hover:bg-neutral-800/90 border border-neutral-800 hover:border-cyan-500/70 p-2 sm:p-2.5 rounded-xl text-center transition-all cursor-pointer group shadow-sm hover:shadow-cyan-500/15 active:scale-95 flex flex-col items-center justify-between min-h-[64px]"
+                      title={`Clique para ver as teclas de ${label} no piano`}
+                    >
+                      <span className={`block font-bold text-white group-hover:text-cyan-400 transition-colors leading-tight px-0.5 ${
+                        label.length >= 8 ? 'text-xs sm:text-sm' : label.length >= 6 ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
+                      }`}>
+                        {label}
+                      </span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="block text-[10px] uppercase text-neutral-400 group-hover:text-amber-400 font-bold transition-colors">
+                          {grau}
+                        </span>
+                        <Piano className="w-2.5 h-2.5 text-neutral-500 group-hover:text-cyan-400 transition-colors" />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                {escala.intervalos.map((_, idx) => {
+                  const label = formatarAcidenteVisual(notasDaEscala[idx]);
+                  const grau = escala.graus[idx];
+
+                  return (
+                    <div key={idx} className="flex-1 min-w-[55px] sm:min-w-[65px] bg-neutral-950 border border-neutral-800 p-2 sm:p-2.5 rounded-xl text-center">
+                      <span className="block text-lg font-bold text-white">{label}</span>
+                      <span className="block text-[10px] uppercase text-neutral-500 font-bold mt-0.5">{grau}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
@@ -505,7 +606,181 @@ function HarmoniaResults({
           onClose={() => setModalEscala(null)}
         />
       )}
+
+      {modalAcordeCampo && (
+        <AcordeCampoModal
+          info={modalAcordeCampo}
+          onClose={() => setModalAcordeCampo(null)}
+        />
+      )}
     </>
+  );
+}
+
+function AcordeCampoModal({
+  info,
+  onClose
+}: {
+  info: AcordeCampoInfo;
+  onClose: () => void;
+}) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Reproduzir som ao abrir o acorde
+  useEffect(() => {
+    tocarSomAcorde(info.raizPitch, info.intervalos, 0, 'piano');
+  }, [info]);
+
+  const tocar = () => {
+    setIsPlaying(true);
+    tocarSomAcorde(info.raizPitch, info.intervalos, 0, 'piano');
+    setTimeout(() => setIsPlaying(false), 900);
+  };
+
+  return (
+    <div
+      id="modal-acorde-campo-backdrop"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        id="modal-acorde-campo-content"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header Fixo */}
+        <div className="flex items-center justify-between border-b border-neutral-800 px-4 sm:px-5 py-2.5 sm:py-3 shrink-0 bg-neutral-900">
+          <div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-cyan-400">
+                Campo Harmônico • Grau {info.grau}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-amber-400 border border-neutral-700">
+                {info.formato === 'tetrades' ? 'Tétrade' : 'Tríade'}
+              </span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+              {info.cifra}
+            </h3>
+            <p className="text-[11px] text-neutral-400">
+              Escala de {info.tomNome} {info.escalaNome}
+            </p>
+          </div>
+          <button
+            id="btn-fechar-modal-acorde"
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+            aria-label="Fechar janela"
+            title="Fechar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Corpo com Scroll interno */}
+        <div className="overflow-y-auto px-4 sm:px-5 py-3.5 space-y-3.5 flex-1 text-xs sm:text-sm">
+          {/* Teclado do Piano */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 flex items-center gap-1.5">
+                <Piano className="w-3.5 h-3.5 text-cyan-400" />
+                Teclas no Piano:
+              </label>
+              <span className="text-[10px] text-neutral-400 hidden sm:inline">
+                Notas marcadas diretamente nas teclas
+              </span>
+            </div>
+
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center shadow-inner">
+              <KeyboardDiagram
+                tomIndice={info.raizPitch}
+                intervalos={info.intervalos}
+                inversaoAtiva={0}
+                notasNomesMap={info.notasNomesMap}
+              />
+
+              {/* Legenda do Teclado */}
+              <div className="flex items-center justify-center gap-4 mt-3 text-[11px] text-neutral-400 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm" />
+                  <span>Fundamental ({formatarAcidenteVisual(info.notas[0])})</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm" />
+                  <span>Notas do Acorde</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Nome das Notas que vão ser tocadas */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Notas que compõem o acorde:
+            </label>
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl py-2 px-3 text-center shadow-inner">
+              <span className="text-base sm:text-lg font-bold text-white tracking-wide">
+                {info.notas.map(formatarAcidenteVisual).join(' – ')}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+              {info.notas.map((nota, i) => {
+                const semitons = info.intervalos[i] ?? 0;
+                const funcao = getFuncaoNotaNoAcorde(semitons, i);
+                const isRaiz = i === 0;
+
+                return (
+                  <div
+                    key={i}
+                    className={`bg-neutral-950 border ${
+                      isRaiz ? 'border-rose-500/50 bg-rose-950/10' : 'border-neutral-800'
+                    } p-2 rounded-xl text-center`}
+                  >
+                    <span className={`block text-lg font-extrabold ${isRaiz ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {formatarAcidenteVisual(nota)}
+                    </span>
+                    <span className="block text-[10px] text-neutral-400 font-semibold mt-0.5 leading-tight">
+                      {funcao}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Botão de Ouvir Som */}
+          <div className="pt-1">
+            <button
+              onClick={tocar}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 text-neutral-950 font-bold rounded-xl text-sm transition-all shadow-md shadow-cyan-500/20 active:scale-98 cursor-pointer"
+            >
+              {isPlaying ? <AudioLines className="w-4 h-4 animate-pulse" /> : <Volume2 className="w-4 h-4" />}
+              <span>Ouvir Acorde ({info.cifra})</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Rodapé Fixo */}
+        <div className="border-t border-neutral-800 px-4 sm:px-5 py-2 sm:py-2.5 flex justify-end shrink-0 bg-neutral-900">
+          <button
+            id="btn-fechar-modal-acorde-rodape"
+            onClick={onClose}
+            className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -816,7 +1091,17 @@ function IntervalosModoModal({
 }
 
 
-function KeyboardDiagram({ tomIndice, intervalos, inversaoAtiva }: { tomIndice: number, intervalos: number[], inversaoAtiva: number }) {
+function KeyboardDiagram({ 
+  tomIndice, 
+  intervalos, 
+  inversaoAtiva,
+  notasNomesMap
+}: { 
+  tomIndice: number;
+  intervalos: number[];
+  inversaoAtiva: number;
+  notasNomesMap?: Record<number, string>;
+}) {
   const intervalosFinais = obterIntervalosInvertidos(intervalos, inversaoAtiva);
   const ativos = intervalosFinais.map(i => (tomIndice + i) % 12);
   const idxBaixo = ativos[0];
@@ -828,22 +1113,37 @@ function KeyboardDiagram({ tomIndice, intervalos, inversaoAtiva }: { tomIndice: 
     { nota:13, left:69.9 }, { nota:15, left:79.0 }
   ];
 
+  const getNomeNotaTecla = (red: number) => {
+    if (notasNomesMap && notasNomesMap[red]) {
+      return notasNomesMap[red];
+    }
+    return formatarAcidenteVisual(obterNomePorIndice(red, 'natural'));
+  };
+
   return (
-    <div className="relative flex bg-neutral-900 p-1 rounded-lg h-24 w-full max-w-[340px] border border-neutral-800 shadow-inner">
+    <div className="relative flex bg-neutral-900 p-1 rounded-lg h-24 sm:h-28 w-full max-w-[340px] border border-neutral-800 shadow-inner select-none">
       {brancas.map((n, i) => {
         const red = n % 12;
         const ativa = ativos.includes(red);
         const baixo = ativa && red === idxBaixo;
         
         let bg = 'bg-white';
-        if (baixo) bg = 'bg-rose-500';
-        else if (ativa) bg = 'bg-emerald-500';
+        if (baixo) bg = 'bg-rose-500 shadow-inner';
+        else if (ativa) bg = 'bg-emerald-500 shadow-inner';
+
+        const rotulo = ativa ? getNomeNotaTecla(red) : '';
 
         return (
           <div 
             key={`w-${i}`}
-            className={`flex-1 border-r border-neutral-300 last:border-0 rounded-b-md ${bg} transition-colors duration-300`}
-          />
+            className={`flex-1 border-r border-neutral-300 last:border-0 rounded-b-md ${bg} transition-colors duration-300 flex flex-col justify-end items-center pb-1.5`}
+          >
+            {ativa && (
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] leading-none select-none">
+                {rotulo}
+              </span>
+            )}
+          </div>
         );
       })}
       
@@ -853,15 +1153,23 @@ function KeyboardDiagram({ tomIndice, intervalos, inversaoAtiva }: { tomIndice: 
         const baixo = ativa && red === idxBaixo;
 
         let bg = 'bg-neutral-900';
-        if (baixo) bg = 'bg-rose-500';
-        else if (ativa) bg = 'bg-emerald-500';
+        if (baixo) bg = 'bg-rose-500 shadow-inner';
+        else if (ativa) bg = 'bg-emerald-500 shadow-inner';
+
+        const rotulo = ativa ? getNomeNotaTecla(red) : '';
 
         return (
           <div 
             key={`b-${i}`}
-            className={`absolute w-[6%] h-[60%] border-x border-b border-black rounded-b-md shadow-sm z-10 ${bg} transition-colors duration-300`}
+            className={`absolute w-[6.2%] h-[60%] border-x border-b border-black rounded-b-md shadow-sm z-10 ${bg} transition-colors duration-300 flex flex-col justify-end items-center pb-1`}
             style={{ left: `${p.left}%` }}
-          />
+          >
+            {ativa && (
+              <span className="text-[8px] sm:text-[9px] font-extrabold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] leading-none select-none">
+                {rotulo}
+              </span>
+            )}
+          </div>
         );
       })}
     </div>
