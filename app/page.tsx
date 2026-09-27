@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Music, Piano, Guitar, BookOpen, Volume2, AudioLines, Info, X, SlidersHorizontal } from 'lucide-react';
+import { Search, Music, Piano, Guitar, BookOpen, Volume2, AudioLines, Info, X, SlidersHorizontal, Sparkles } from 'lucide-react';
 import {
   obterNotaInterna,
   obterNomePorIndice,
   obterNotasDaEscala,
+  formatarAcidenteVisual,
   TIPOS_ACORDES,
   ESCALAS,
   Escala,
   MODOS_GREGOS,
+  ModoGrego,
   getViolaoShape,
   obterIntervalosInvertidos,
   Notacao
@@ -375,28 +377,63 @@ function HarmoniaResults({
   formatoCampo?: 'triades' | 'tetrades';
 }) {
   const [modalEscala, setModalEscala] = useState<Escala | null>(null);
+  const [modalModo, setModalModo] = useState<ModoGrego | null>(null);
   const tom = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
+  const tomNome = useMemo(() => formatarAcidenteVisual(tom.nome), [tom]);
 
   if (view === 'modos') {
     return (
       <>
-        {MODOS_GREGOS.map((modo, idx) => (
-          <div key={idx} className="bg-neutral-900 border border-neutral-800 border-l-4 border-l-cyan-500 rounded-2xl p-5 shadow-lg">
-            <h4 className="text-lg font-bold text-amber-400 mb-4">{idx + 1}º Modo: {modo.nome} de {tom.nome}</h4>
-            <div className="flex flex-wrap gap-2.5">
-              {modo.intervalos.map((intervalo, i) => {
-                const notaIndice = (tom.indice + intervalo) % 12;
-                const notaExib = obterNomePorIndice(notaIndice, accidental);
-                return (
-                  <div key={i} className="flex-1 min-w-[60px] bg-neutral-950 border border-neutral-800 p-2.5 rounded-xl text-center">
-                    <span className="block text-lg font-bold text-white">{notaExib}</span>
-                    <span className="block text-[10px] uppercase text-neutral-500 font-bold mt-0.5">{i + 1}ª</span>
+        {MODOS_GREGOS.map((modo, idx) => {
+          const notasDaEscala = obterNotasDaEscala(rootNote, accidental, modo.intervalos);
+          return (
+            <div key={idx} className="bg-neutral-900 border border-neutral-800 border-l-4 border-l-cyan-500 rounded-2xl p-5 shadow-lg">
+              <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase tracking-wider">
+                      {modo.numero}º Modo
+                    </span>
+                    <h4 className="text-lg font-bold text-amber-400">
+                      {modo.nomeCompleto} de {tomNome}
+                    </h4>
                   </div>
-                );
-              })}
+                  <p className="text-xs text-neutral-400 mt-1">
+                    <strong className="text-neutral-300 font-medium">Sensação:</strong> {modo.sensacao}
+                  </p>
+                </div>
+
+                <button
+                  id={`btn-intervalos-modo-${idx}`}
+                  onClick={() => setModalModo(modo)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-neutral-950 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 cursor-pointer"
+                  title={`Ver intervalos de ${tomNome} ${modo.nome}`}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  ( Intervalos )
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2.5">
+                {notasDaEscala.map((nota, i) => (
+                  <div key={i} className="flex-1 min-w-[60px] bg-neutral-950 border border-neutral-800 p-2.5 rounded-xl text-center">
+                    <span className="block text-lg font-bold text-white">{formatarAcidenteVisual(nota)}</span>
+                    <span className="block text-[10px] uppercase text-cyan-400 font-bold mt-0.5">{modo.graus[i]}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+        {modalModo && (
+          <IntervalosModoModal
+            modo={modalModo}
+            rootNote={rootNote}
+            accidental={accidental}
+            onClose={() => setModalModo(null)}
+          />
+        )}
       </>
     );
   }
@@ -414,7 +451,7 @@ function HarmoniaResults({
             <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
               <div className="flex items-center gap-2.5">
                 <h4 className="text-lg font-bold text-amber-400">
-                  {tom.nome} {escala.nome}
+                  {tomNome} {escala.nome}
                 </h4>
                 {view === 'campos' && (
                   <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
@@ -432,7 +469,7 @@ function HarmoniaResults({
                   id={`btn-intervalos-${i}`}
                   onClick={() => setModalEscala(escala)}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-neutral-950 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 cursor-pointer"
-                  title={`Ver intervalos de ${tom.nome} ${escala.nome}`}
+                  title={`Ver intervalos de ${tomNome} ${escala.nome}`}
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                   ( Intervalos )
@@ -442,7 +479,7 @@ function HarmoniaResults({
 
             <div className="flex flex-wrap gap-2.5">
               {escala.intervalos.map((_, idx) => {
-                let label = notasDaEscala[idx];
+                let label = formatarAcidenteVisual(notasDaEscala[idx]);
                 if (view === 'campos' && sufixosUsados) {
                   label += sufixosUsados[idx];
                 }
@@ -484,7 +521,9 @@ function IntervalosModal({
   onClose: () => void;
 }) {
   const tom = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
+  const tomNome = useMemo(() => formatarAcidenteVisual(tom.nome), [tom]);
   const notas = useMemo(() => obterNotasDaEscala(rootNote, accidental, escala.intervalos), [rootNote, accidental, escala]);
+  const notasVisual = useMemo(() => notas.map(formatarAcidenteVisual), [notas]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -502,19 +541,19 @@ function IntervalosModal({
     >
       <div
         id="modal-intervalos-content"
-        className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[88vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
         onClick={e => e.stopPropagation()}
       >
         {/* Header Fixo */}
-        <div className="flex items-center justify-between border-b border-neutral-800 px-4 sm:px-5 py-3 shrink-0 bg-neutral-900">
+        <div className="flex items-center justify-between border-b border-neutral-800 px-4 sm:px-5 py-2.5 sm:py-3 shrink-0 bg-neutral-900">
           <div>
             <span className="text-[10px] uppercase tracking-wider font-bold text-cyan-400">Escala Musical</span>
-            <h3 className="text-lg sm:text-xl font-bold text-white leading-tight">{tom.nome} {escala.nome}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white leading-tight">{tomNome} {escala.nome}</h3>
           </div>
           <button
             id="btn-fechar-modal"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
             aria-label="Fechar janela"
             title="Fechar"
           >
@@ -523,20 +562,20 @@ function IntervalosModal({
         </div>
 
         {/* Corpo com Scroll interno suave se a tela for pequena */}
-        <div className="overflow-y-auto px-4 sm:px-5 py-3.5 space-y-3 flex-1">
+        <div className="overflow-y-auto px-4 sm:px-5 py-3 space-y-2.5 sm:space-y-3 flex-1 text-xs sm:text-sm">
           {/* Sequência de Notas como solicitado */}
           <div className="space-y-1.5">
             <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
-              {tom.nome} {escala.nome}
+              {tomNome} {escala.nome}
             </label>
             <div className="bg-neutral-950 border border-neutral-800 rounded-xl py-2 px-3 text-center shadow-inner">
               <span className="text-base sm:text-lg font-bold text-white tracking-wide">
-                {notas.join(' - ')} .
+                {notasVisual.join(' - ')} .
               </span>
             </div>
 
             <div className="grid grid-cols-7 gap-1 sm:gap-1.5 pt-0.5">
-              {notas.map((nota, idx) => (
+              {notasVisual.map((nota, idx) => (
                 <div key={idx} className="bg-neutral-950 border border-neutral-800/80 rounded-lg py-1.5 px-1 text-center">
                   <span className="block text-sm sm:text-base font-bold text-amber-400">{nota}</span>
                   <span className="block text-[9px] uppercase font-bold text-neutral-500 mt-0.5">{escala.graus[idx]}</span>
@@ -564,7 +603,7 @@ function IntervalosModal({
             </label>
             <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 overflow-x-auto">
               <div className="flex items-center justify-between min-w-[320px] gap-1 text-center">
-                {notas.map((nota, idx) => {
+                {notasVisual.map((nota, idx) => {
                   const passo = escala.passos[idx];
                   return (
                     <div key={idx} className="flex items-center gap-1">
@@ -578,14 +617,14 @@ function IntervalosModal({
                   );
                 })}
                 <span className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-[11px] font-bold text-neutral-400">
-                  {notas[0]}
+                  {notasVisual[0]}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Legenda dos Intervalos */}
-          <div className="bg-neutral-950/70 border border-neutral-800 rounded-xl p-2.5 text-[11px] text-neutral-400 space-y-1">
+          <div className="bg-neutral-950/70 border border-neutral-800 rounded-xl p-2 text-[11px] text-neutral-400 space-y-0.5">
             <div className="font-semibold text-neutral-300">Legenda de Intervalos:</div>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5">
               <span><strong className="text-cyan-400">T</strong> = Tom (2 semitons)</span>
@@ -596,9 +635,175 @@ function IntervalosModal({
         </div>
 
         {/* Rodapé Fixo com botão Fechar sempre visível */}
-        <div className="border-t border-neutral-800 px-4 sm:px-5 py-2.5 flex justify-end shrink-0 bg-neutral-900">
+        <div className="border-t border-neutral-800 px-4 sm:px-5 py-2 sm:py-2.5 flex justify-end shrink-0 bg-neutral-900">
           <button
             id="btn-fechar-modal-rodape"
+            onClick={onClose}
+            className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IntervalosModoModal({
+  modo,
+  rootNote,
+  accidental,
+  onClose
+}: {
+  modo: ModoGrego;
+  rootNote: string;
+  accidental: Notacao;
+  onClose: () => void;
+}) {
+  const tom = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
+  const tomNome = useMemo(() => formatarAcidenteVisual(tom.nome), [tom]);
+  const notas = useMemo(() => obterNotasDaEscala(rootNote, accidental, modo.intervalos), [rootNote, accidental, modo]);
+  const notasVisual = useMemo(() => notas.map(formatarAcidenteVisual), [notas]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      id="modal-intervalos-modo-backdrop"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        id="modal-intervalos-modo-content"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header Fixo */}
+        <div className="flex items-center justify-between border-b border-neutral-800 px-4 sm:px-5 py-2.5 sm:py-3 shrink-0 bg-neutral-900">
+          <div>
+            <span className="text-[10px] uppercase tracking-wider font-bold text-cyan-400">
+              Modo Grego • {modo.numero}º Modo
+            </span>
+            <h3 className="text-base sm:text-lg font-bold text-white leading-tight">
+              {tomNome} {modo.nomeCompleto}
+            </h3>
+          </div>
+          <button
+            id="btn-fechar-modal-modo"
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+            aria-label="Fechar janela"
+            title="Fechar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Corpo com Scroll interno suave se a tela for pequena */}
+        <div className="overflow-y-auto px-4 sm:px-5 py-3 space-y-2.5 sm:space-y-3 flex-1 text-xs sm:text-sm">
+          {/* Escala com Sequência de Notas */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Escala de {tomNome} {modo.nome}:
+            </label>
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl py-2 px-3 text-center shadow-inner">
+              <span className="text-base sm:text-lg font-bold text-white tracking-wide">
+                {notasVisual.join(' – ')}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 sm:gap-1.5 pt-0.5">
+              {notasVisual.map((nota, idx) => (
+                <div key={idx} className="bg-neutral-950 border border-neutral-800/80 rounded-lg py-1.5 px-1 text-center">
+                  <span className="block text-sm sm:text-base font-bold text-amber-400">{nota}</span>
+                  <span className="block text-[9px] uppercase font-bold text-cyan-400 mt-0.5">{modo.graus[idx]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Fórmula */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Fórmula:
+            </label>
+            <div className="bg-neutral-950 border border-cyan-500/40 rounded-xl py-2 px-3 text-center shadow-inner">
+              <span className="text-sm sm:text-base font-mono font-bold text-cyan-400 tracking-wider">
+                {modo.formula}
+              </span>
+            </div>
+          </div>
+
+          {/* Intervalos */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Intervalos:
+            </label>
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl py-2 px-3 text-center shadow-inner">
+              <span className="text-xs sm:text-sm font-semibold text-neutral-200 tracking-wider">
+                (Intervalos: {modo.graus.join(', ')})
+              </span>
+            </div>
+          </div>
+
+          {/* Sensação */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Sensação:
+            </label>
+            <div className="bg-neutral-950/90 border border-neutral-800 rounded-xl p-2.5 text-xs sm:text-sm text-neutral-200 flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <span>{modo.sensacao}</span>
+            </div>
+          </div>
+
+          {/* Progressão Passo a Passo Visual Nota a Nota */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] uppercase tracking-wider font-bold text-neutral-400">
+              Progressão Passo a Passo (Nota a Nota)
+            </label>
+            <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 overflow-x-auto">
+              <div className="flex items-center justify-between min-w-[340px] gap-1 text-center">
+                {notasVisual.map((nota, idx) => {
+                  const passo = modo.passos[idx];
+                  return (
+                    <div key={idx} className="flex items-center gap-1">
+                      <span className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-[11px] font-bold text-white">
+                        {nota}
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-1 py-0.5 rounded">
+                        {passo}
+                      </span>
+                    </div>
+                  );
+                })}
+                <span className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-800 rounded-md text-[11px] font-bold text-neutral-400">
+                  {notasVisual[0]}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Legenda */}
+          <div className="bg-neutral-950/70 border border-neutral-800 rounded-xl p-2 text-[11px] text-neutral-400 space-y-0.5">
+            <div className="font-semibold text-neutral-300">Legenda:</div>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+              <span><strong className="text-cyan-400">T</strong> = Tom completo</span>
+              <span><strong className="text-cyan-400">sT</strong> = Semitom / Meio tom</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Rodapé Fixo com botão Fechar sempre visível */}
+        <div className="border-t border-neutral-800 px-4 sm:px-5 py-2 sm:py-2.5 flex justify-end shrink-0 bg-neutral-900">
+          <button
+            id="btn-fechar-modal-modo-rodape"
             onClick={onClose}
             className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-semibold rounded-lg text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
           >

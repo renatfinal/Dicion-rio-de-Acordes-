@@ -303,14 +303,92 @@ export const ESCALAS: Escala[] = [
   }
 ];
 
-export const MODOS_GREGOS = [
-  { nome: "Jônio (Maior)", intervalos: [0,2,4,5,7,9,11] },
-  { nome: "Dórico", intervalos: [0,2,3,5,7,9,10] },
-  { nome: "Frígio", intervalos: [0,1,3,5,7,8,10] },
-  { nome: "Lídio", intervalos: [0,2,4,6,7,9,11] },
-  { nome: "Mixolídio", intervalos: [0,2,4,5,7,9,10] },
-  { nome: "Eólio (Menor Natural)", intervalos: [0,2,3,5,7,8,10] },
-  { nome: "Lócrio", intervalos: [0,1,3,5,6,8,10] }
+export function formatarAcidenteVisual(nota: string): string {
+  return nota.replace(/#/g, '♯').replace(/b/g, '♭');
+}
+
+export interface ModoGrego {
+  numero: number;
+  nome: string;
+  nomeCompleto: string;
+  intervalos: number[];
+  graus: string[];
+  formula: string;
+  passos: string[];
+  sensacao: string;
+}
+
+export const MODOS_GREGOS: ModoGrego[] = [
+  {
+    numero: 1,
+    nome: "Jônio",
+    nomeCompleto: "Jônio (Modo Maior Natural)",
+    intervalos: [0, 2, 4, 5, 7, 9, 11],
+    graus: ["1", "2", "3", "4", "5", "6", "7"],
+    formula: "T – T – sT – T – T – T – sT",
+    passos: ["T", "T", "sT", "T", "T", "T", "sT"],
+    sensacao: "Alegre, brilhante, estável."
+  },
+  {
+    numero: 2,
+    nome: "Dórico",
+    nomeCompleto: "Dórico",
+    intervalos: [0, 2, 3, 5, 7, 9, 10],
+    graus: ["1", "2", "♭3", "4", "5", "6", "♭7"],
+    formula: "T – sT – T – T – T – sT – T",
+    passos: ["T", "sT", "T", "T", "T", "sT", "T"],
+    sensacao: "Menor, porém mais aberto/moderno (comum no Jazz e Rock)."
+  },
+  {
+    numero: 3,
+    nome: "Frígio",
+    nomeCompleto: "Frígio",
+    intervalos: [0, 1, 3, 5, 7, 8, 10],
+    graus: ["1", "♭2", "♭3", "4", "5", "♭6", "♭7"],
+    formula: "sT – T – T – T – sT – T – T",
+    passos: ["sT", "T", "T", "T", "sT", "T", "T"],
+    sensacao: "Tensiva, som \"espanhol\", flamenco ou metal."
+  },
+  {
+    numero: 4,
+    nome: "Lídio",
+    nomeCompleto: "Lídio",
+    intervalos: [0, 2, 4, 6, 7, 9, 11],
+    graus: ["1", "2", "3", "♯4", "5", "6", "7"],
+    formula: "T – T – T – sT – T – T – sT",
+    passos: ["T", "T", "T", "sT", "T", "T", "sT"],
+    sensacao: "Mística, flutuante, som \"espacial\" ou de trilha sonora."
+  },
+  {
+    numero: 5,
+    nome: "Mixolídio",
+    nomeCompleto: "Mixolídio",
+    intervalos: [0, 2, 4, 5, 7, 9, 10],
+    graus: ["1", "2", "3", "4", "5", "6", "♭7"],
+    formula: "T – T – sT – T – T – sT – T",
+    passos: ["T", "T", "sT", "T", "T", "sT", "T"],
+    sensacao: "Maior, mas com um toque de Blues/Rock (dominante)."
+  },
+  {
+    numero: 6,
+    nome: "Eólio",
+    nomeCompleto: "Eólio (Modo Menor Natural)",
+    intervalos: [0, 2, 3, 5, 7, 8, 10],
+    graus: ["1", "2", "♭3", "4", "5", "♭6", "♭7"],
+    formula: "T – sT – T – T – sT – T – T",
+    passos: ["T", "sT", "T", "T", "sT", "T", "T"],
+    sensacao: "Triste, melancólica, clássica."
+  },
+  {
+    numero: 7,
+    nome: "Lócrio",
+    nomeCompleto: "Lócrio",
+    intervalos: [0, 1, 3, 5, 6, 8, 10],
+    graus: ["1", "♭2", "♭3", "4", "♭5", "♭6", "♭7"],
+    formula: "sT – T – T – sT – T – T – T",
+    passos: ["sT", "T", "T", "sT", "T", "T", "T"],
+    sensacao: "Sombria, instável, diminuta."
+  }
 ];
 
 export function obterIntervalosInvertidos(intervalos: number[], grau: number): number[] {
