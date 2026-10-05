@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Music, Piano, Guitar, BookOpen, Volume2, AudioLines, Info, X, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Search, Music, Piano, Guitar, BookOpen, Volume2, AudioLines, Info, X, SlidersHorizontal, Sparkles, Copy, Check, Heart } from 'lucide-react';
 import {
   obterNotaInterna,
   obterNomePorIndice,
@@ -39,6 +39,7 @@ export default function ChordProApp() {
   const [harmAccidental, setHarmAccidental] = useState<Notacao>('natural');
   const [harmView, setHarmView] = useState<'none' | 'escalas' | 'campos' | 'modos'>('none');
   const [formatoCampo, setFormatoCampo] = useState<'triades' | 'tetrades'>('triades');
+  const [showColaboreModal, setShowColaboreModal] = useState(false);
 
   const currentNote = useMemo(() => obterNotaInterna(rootNote, accidental), [rootNote, accidental]);
   
@@ -180,7 +181,7 @@ export default function ChordProApp() {
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Ex: 7+, m7(b5), m7+, 7(b9), º..."
+                    placeholder="Ex: 7/9, m7/9, 7+, m7(b5), m7+, 7(b9), º..."
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all placeholder:text-neutral-600"
                   />
                 </div>
@@ -284,21 +285,32 @@ export default function ChordProApp() {
                   <div className="flex flex-col md:flex-row gap-4 max-w-lg mx-auto">
                     <button 
                       onClick={() => setHarmView('escalas')}
-                      className="flex-1 bg-neutral-950 border-2 border-neutral-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-neutral-200 py-4 px-6 rounded-2xl font-semibold transition-all"
+                      className="flex-1 bg-neutral-950 border-2 border-neutral-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-neutral-200 py-4 px-6 rounded-2xl font-semibold transition-all cursor-pointer"
                     >
                       Escalas
                     </button>
                     <button 
                       onClick={() => setHarmView('campos')}
-                      className="flex-1 bg-neutral-950 border-2 border-neutral-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-neutral-200 py-4 px-6 rounded-2xl font-semibold transition-all"
+                      className="flex-1 bg-neutral-950 border-2 border-neutral-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-neutral-200 py-4 px-6 rounded-2xl font-semibold transition-all cursor-pointer"
                     >
                       Campos Harmônicos
                     </button>
                     <button 
                       onClick={() => setHarmView('modos')}
-                      className="flex-1 bg-neutral-950 border-2 border-neutral-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-neutral-200 py-4 px-6 rounded-2xl font-semibold transition-all"
+                      className="flex-1 bg-neutral-950 border-2 border-neutral-800 hover:border-cyan-500/50 hover:bg-cyan-500/5 text-neutral-200 py-4 px-6 rounded-2xl font-semibold transition-all cursor-pointer"
                     >
                       Modos Gregos
+                    </button>
+                  </div>
+
+                  <div className="mt-6 max-w-lg mx-auto">
+                    <button
+                      id="btn-colabore"
+                      onClick={() => setShowColaboreModal(true)}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 border-2 border-emerald-500/40 hover:border-emerald-400 text-emerald-400 py-3 px-8 rounded-2xl font-semibold transition-all cursor-pointer shadow-lg shadow-emerald-950/30"
+                    >
+                      <Heart className="w-4 h-4 fill-emerald-400 text-emerald-400" />
+                      <span>( Colabore )</span>
                     </button>
                   </div>
                 </div>
@@ -357,6 +369,10 @@ export default function ChordProApp() {
           </div>
         )}
 
+        {showColaboreModal && (
+          <ColaboreModal onClose={() => setShowColaboreModal(false)} />
+        )}
+
       </div>
     </div>
   );
@@ -365,6 +381,126 @@ export default function ChordProApp() {
 // -----------------------------------------------------------------------------
 // Sub-Components
 // -----------------------------------------------------------------------------
+
+function ColaboreModal({ onClose }: { onClose: () => void }) {
+  const [copiado, setCopiado] = useState(false);
+  const chavePix = 'renato.rcc@hotmail.com';
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const copiarPix = async () => {
+    try {
+      await navigator.clipboard.writeText(chavePix);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = chavePix;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    }
+  };
+
+  return (
+    <div
+      id="modal-colabore-backdrop"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        id="modal-colabore-content"
+        className="bg-neutral-900 border border-neutral-800 rounded-2xl max-w-md w-full shadow-2xl flex flex-col max-h-[85vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header Fixo */}
+        <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3.5 shrink-0 bg-neutral-900">
+          <h3 className="text-lg sm:text-xl font-bold text-white leading-tight flex items-center gap-2">
+            <span>💚 Apoie este projeto</span>
+          </h3>
+          <button
+            id="btn-fechar-modal-colabore-topo"
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white flex items-center justify-center transition-all cursor-pointer shrink-0"
+            aria-label="Fechar janela"
+            title="Fechar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Corpo com Scroll interno */}
+        <div className="overflow-y-auto px-5 py-4 space-y-4 flex-1 text-sm text-neutral-200 leading-relaxed">
+          <p>
+            Este aplicativo foi desenvolvido de forma independente com dedicação para ajudar pessoas no dia a dia. Se ele tem sido útil para você, considere fazer uma contribuição voluntária.
+          </p>
+
+          <p>
+            Sua ajuda contribui para a manutenção, melhorias, novas funcionalidades e atualizações constantes do aplicativo.
+          </p>
+
+          {/* Caixa da Chave Pix para Copiar */}
+          <div className="bg-neutral-950 border border-emerald-500/40 rounded-xl p-3.5 space-y-2.5 shadow-inner">
+            <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400">
+              Chave Pix:
+            </label>
+            <div className="flex items-center justify-between gap-2 bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5">
+              <span className="font-mono font-bold text-white text-sm sm:text-base select-all break-all">
+                {chavePix}
+              </span>
+              <button
+                id="btn-copiar-pix"
+                onClick={copiarPix}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                  copiado
+                    ? 'bg-emerald-500 text-neutral-950 shadow-sm'
+                    : 'bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-neutral-950 border border-emerald-500/30'
+                }`}
+                title="Copiar chave Pix"
+              >
+                {copiado ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <p className="text-center font-medium text-neutral-100 pt-1">
+            Muito obrigado pelo seu apoio e por fazer parte deste projeto. 🤝
+          </p>
+        </div>
+
+        {/* Rodapé Fixo com Botão Fechar */}
+        <div className="border-t border-neutral-800 px-5 py-3 flex justify-center shrink-0 bg-neutral-900">
+          <button
+            id="btn-fechar-modal-colabore"
+            onClick={onClose}
+            className="w-full py-2.5 px-6 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 hover:text-white font-semibold rounded-xl text-sm transition-all cursor-pointer shadow-sm"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface AcordeCampoInfo {
   cifra: string;
